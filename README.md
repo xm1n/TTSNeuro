@@ -12,7 +12,7 @@ client. To run it:
 ```bash
 cd web
 npm install
-node server.js
+env OPENAI_API_KEY=YOUR_KEY node server.js
 ```
 
 Then open `http://localhost:3000` in a modern browser and use the **Start**
@@ -26,3 +26,6 @@ server, ensure you've run `npm install` inside the `web` directory.
 
 The Android prototype remains in the `app` directory. Open it with Android
 Studio if you want to experiment with the mobile approach.
+It now connects to the Node.js server via WebSocket and shows the AI response
+on the car display. Launch the server first and ensure the device has network
+access to it.

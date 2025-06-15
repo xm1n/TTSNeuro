@@ -9,6 +9,11 @@ import android.speech.RecognizerIntent
 import android.widget.Button
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.WebSocket
+import okhttp3.WebSocketListener
+import okio.ByteString
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -16,6 +21,8 @@ import androidx.core.content.ContextCompat
 class MainActivity : AppCompatActivity() {
     private lateinit var resultText: TextView
     private lateinit var recordButton: Button
+    private lateinit var webSocket: WebSocket
+    private val client = OkHttpClient()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +30,15 @@ class MainActivity : AppCompatActivity() {
 
         resultText = findViewById(R.id.resultText)
         recordButton = findViewById(R.id.recordButton)
+
+        val request = Request.Builder()
+            .url("ws://10.0.2.2:3000")
+            .build()
+        webSocket = client.newWebSocket(request, object : WebSocketListener() {
+            override fun onMessage(ws: WebSocket, text: String) {
+                runOnUiThread { resultText.text = text }
+            }
+        })
 
         recordButton.setOnClickListener {
             startSpeechRecognition()
@@ -34,7 +50,10 @@ class MainActivity : AppCompatActivity() {
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val text = result.data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull()
-            resultText.text = text ?: ""
+            text?.let {
+                resultText.text = it
+                webSocket.send(it)
+            }
         }
     }
 
